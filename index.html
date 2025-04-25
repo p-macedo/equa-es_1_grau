@@ -1,0 +1,767 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aprendendo Equações do 1º Grau</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script>
+        MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']]
+            }
+        };
+    </script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#f0f9ff',
+                            100: '#e0f2fe',
+                            200: '#bae6fd',
+                            300: '#7dd3fc',
+                            400: '#38bdf8',
+                            500: '#0ea5e9',
+                            600: '#0284c7',
+                            700: '#0369a1',
+                            800: '#075985',
+                            900: '#0c4a6e',
+                        },
+                        success: {
+                            500: '#10b981',
+                            700: '#047857',
+                        },
+                        warning: {
+                            500: '#f59e0b',
+                            700: '#b45309',
+                        },
+                        error: {
+                            500: '#ef4444',
+                            700: '#b91c1c',
+                        }
+                    },
+                    animation: {
+                        'bounce-once': 'bounce 0.5s ease-in-out 1',
+                        'pulse-once': 'pulse 0.5s ease-in-out 1',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .equation-input {
+            width: 60px;
+            text-align: center;
+            border-bottom: 2px solid #0284c7;
+            margin: 0 5px;
+        }
+
+        .fraction {
+            display: inline-block;
+            vertical-align: middle;
+            text-align: center;
+            margin: 0 2px;
+        }
+
+        .numerator {
+            border-bottom: 1px solid black;
+            display: block;
+            padding: 0 5px;
+        }
+
+        .denominator {
+            display: block;
+            padding: 0 5px;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .progress-ring__circle {
+            transition: stroke-dashoffset 0.5s ease-in-out;
+            transform: rotate(-90deg);
+            transform-origin: 50% 50%;
+        }
+
+        .math-expression {
+            font-size: 1.25rem;
+            text-align: center;
+            margin: 1rem 0;
+        }
+
+        /* Modal styles */
+        .modal {
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+
+        .modal-content {
+            transition: transform 0.3s ease;
+        }
+
+        .modal-enter {
+            opacity: 0;
+            visibility: hidden;
+        }
+
+        .modal-enter .modal-content {
+            transform: translateY(-20px);
+        }
+
+        .modal-exit {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal-exit .modal-content {
+            transform: translateY(0);
+        }
+    </style>
+  
+</head>
+
+<body class="bg-gray-50 font-sans antialiased">
+    <!-- Modal de Identificação -->
+    <div id="student-modal"
+        class="modal fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50 modal-enter">
+        <div class="modal-content bg-white rounded-lg shadow-xl p-6 w-full max-w-md">
+            <h2 class="text-2xl font-bold text-primary-700 mb-4">Identificação do Aluno</h2>
+            <form id="student-form">
+                <div class="mb-4">
+                    <label for="student-name" class="block text-gray-700 font-medium mb-2">Nome Completo:</label>
+                    <input type="text" id="student-name"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
+                        required>
+                </div>
+                <div class="mb-6">
+                    <label for="student-class" class="block text-gray-700 font-medium mb-2">Turma:</label>
+                    <input type="text" id="student-class"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
+                        required>
+                </div>
+                <div class="flex justify-end">
+                    <button type="submit"
+                        class="bg-primary-600 hover:bg-primary-700 text-white font-bold py-2 px-4 rounded-md transition duration-200">
+                        Começar Exercícios
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="container mx-auto px-4 py-8 max-w-5xl hidden" id="main-content">
+        <!-- Header -->
+        <header class="mb-10 text-center">
+            <h1 class="text-4xl font-bold text-primary-800 mb-2">Equações do 1º Grau</h1>
+            <p class="text-lg text-gray-600">Aprenda a resolver equações lineares de forma simples e prática</p>
+        </header>
+
+        <!-- Progress Indicator (hidden by default) -->
+        <div id="progress-container"
+            class="hidden fixed top-4 right-4 bg-white p-4 rounded-lg shadow-lg z-10 border border-gray-200">
+            <div class="flex items-center justify-between mb-2">
+                <h3 class="font-semibold text-gray-700">Seu Progresso</h3>
+                <span id="progress-percent" class="font-bold text-primary-700">0%</span>
+            </div>
+            <div class="relative w-20 h-20">
+                <svg class="w-full h-full" viewBox="0 0 36 36">
+                    <path d="M18 2.0845
+                            a 15.9155 15.9155 0 0 1 0 31.831
+                            a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#e5e7eb" stroke-width="3" />
+                    <path id="progress-ring" class="progress-ring__circle" d="M18 2.0845
+                            a 15.9155 15.9155 0 0 1 0 31.831
+                            a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#0ea5e9" stroke-width="3"
+                        stroke-dasharray="100, 100" stroke-dashoffset="100" />
+                </svg>
+                <div class="absolute inset-0 flex items-center justify-center">
+                    <span id="progress-score" class="text-sm font-bold">0/100</span>
+                </div>
+            </div>
+            <div id="progress-message" class="mt-2 text-sm text-center text-gray-600">Comece a resolver os exercícios!
+            </div>
+        </div>
+
+        <!-- Tutorial Section -->
+        <section class="mb-12 bg-white rounded-xl shadow-md overflow-hidden">
+            <div class="p-6">
+                <h2 class="text-2xl font-bold text-primary-700 mb-4 flex items-center">
+                    <span class="material-icons mr-2">school</span>
+                    Como resolver equações do 1º grau
+                </h2>
+
+                <div class="mb-6">
+                    <h3 class="text-xl font-semibold text-gray-800 mb-2">O que é uma equação do 1º grau?</h3>
+                    <p class="text-gray-700 mb-4">
+                        Uma equação do primeiro grau é uma igualdade matemática que envolve uma variável (geralmente
+                        representada por $x$) elevada ao expoente 1. Ela tem a forma geral:
+                    </p>
+                    <div class="math-expression">
+                        $ax + b = 0$
+                    </div>
+                    <p class="text-gray-700">
+                        Onde $a$ e $b$ são números reais, com $a \neq 0$.
+                    </p>
+                </div>
+
+                <div class="mb-6">
+                    <h3 class="text-xl font-semibold text-gray-800 mb-2">Passo a passo para resolver</h3>
+
+                    <div class="space-y-6">
+                        <!-- Step 1 -->
+                        <div class="flex items-start">
+                            <div
+                                class="bg-primary-100 text-primary-800 rounded-full w-8 h-8 flex items-center justify-center mr-4 mt-1 flex-shrink-0">
+                                1
+                            </div>
+                            <div>
+                                <h4 class="font-semibold text-gray-800 mb-1">Isole os termos com x</h4>
+                                <p class="text-gray-700">
+                                    Mova todos os termos que contêm a variável para um lado da equação e os termos
+                                    constantes para o outro lado.
+                                </p>
+                                <div class="bg-gray-100 p-3 rounded-lg mt-2">
+                                    <p class="text-sm font-mono">Exemplo: 2x + 3 = 7 → 2x = 7 - 3 → 2x = 4</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Step 2 -->
+                        <div class="flex items-start">
+                            <div
+                                class="bg-primary-100 text-primary-800 rounded-full w-8 h-8 flex items-center justify-center mr-4 mt-1 flex-shrink-0">
+                                2
+                            </div>
+                            <div>
+                                <h4 class="font-semibold text-gray-800 mb-1">Simplifique ambos os lados</h4>
+                                <p class="text-gray-700">
+                                    Combine termos semelhantes em cada lado da equação.
+                                </p>
+                                <div class="bg-gray-100 p-3 rounded-lg mt-2">
+                                    <p class="text-sm font-mono">Exemplo: 3x - 2x = 5 + 1 → x = 6</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Step 3 -->
+                        <div class="flex items-start">
+                            <div
+                                class="bg-primary-100 text-primary-800 rounded-full w-8 h-8 flex items-center justify-center mr-4 mt-1 flex-shrink-0">
+                                3
+                            </div>
+                            <div>
+                                <h4 class="font-semibold text-gray-800 mb-1">Divida pelo coeficiente de x</h4>
+                                <p class="text-gray-700">
+                                    Se necessário, divida ambos os lados pelo número que multiplica x para isolar a
+                                    variável.
+                                </p>
+                                <div class="bg-gray-100 p-3 rounded-lg mt-2">
+                                    <p class="text-sm font-mono">Exemplo: 5x = 20 → x = 20 ÷ 5 → x = 4</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mb-6">
+                    <h3 class="text-xl font-semibold text-gray-800 mb-2">Exemplos resolvidos</h3>
+
+                    <div class="space-y-4">
+                        <!-- Example 1 -->
+                        <div class="bg-blue-50 p-4 rounded-lg border border-blue-100">
+                            <h4 class="font-semibold text-blue-800 mb-2">Exemplo 1: 3x + 5 = 17</h4>
+                            <ol class="list-decimal pl-5 space-y-1 text-gray-700">
+                                <li>Subtraia 5 de ambos os lados: 3x = 17 - 5 → 3x = 12</li>
+                                <li>Divida ambos os lados por 3: x = 12 ÷ 3 → x = 4</li>
+                            </ol>
+                        </div>
+
+                        <!-- Example 2 -->
+                        <div class="bg-blue-50 p-4 rounded-lg border border-blue-100">
+                            <h4 class="font-semibold text-blue-800 mb-2">Exemplo 2: 2(x - 3) = 10</h4>
+                            <ol class="list-decimal pl-5 space-y-1 text-gray-700">
+                                <li>Distribua o 2: 2x - 6 = 10</li>
+                                <li>Adicione 6 a ambos os lados: 2x = 10 + 6 → 2x = 16</li>
+                                <li>Divida por 2: x = 16 ÷ 2 → x = 8</li>
+                            </ol>
+                        </div>
+
+                        <!-- Example 3 -->
+                        <div class="bg-blue-50 p-4 rounded-lg border border-blue-100">
+                            <h4 class="font-semibold text-blue-800 mb-2">Exemplo 3: (x + 5)/2 = 3</h4>
+                            <ol class="list-decimal pl-5 space-y-1 text-gray-700">
+                                <li>Multiplique ambos os lados por 2: x + 5 = 6</li>
+                                <li>Subtraia 5 de ambos os lados: x = 6 - 5 → x = 1</li>
+                            </ol>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded-r-lg">
+                    <div class="flex">
+                        <div class="flex-shrink-0">
+                            <span class="material-icons text-yellow-500">lightbulb</span>
+                        </div>
+                        <div class="ml-3">
+                            <h3 class="text-sm font-medium text-yellow-800">Dica importante</h3>
+                            <div class="mt-2 text-sm text-yellow-700">
+                                <p>
+                                    Sempre verifique sua solução substituindo o valor de x na equação original. Se os
+                                    dois lados forem iguais, sua resposta está correta!
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Exercises Section -->
+        <section class="mb-12">
+            <div class="bg-white rounded-xl shadow-md overflow-hidden">
+                <div class="p-6 border-b border-gray-200">
+                    <h2 class="text-2xl font-bold text-primary-700 mb-2 flex items-center">
+                        <span class="material-icons mr-2">assignment</span>
+                        Exercícios Práticos
+                    </h2>
+                    <p class="text-gray-600">Resolva as equações abaixo e verifique suas respostas.</p>
+                </div>
+
+                <div class="p-6">
+                    <div id="exercises-container" class="space-y-8">
+                        <!-- Exercises will be generated here by JavaScript -->
+                    </div>
+
+                    <div class="mt-8 flex justify-center">
+                        <button id="check-all-btn"
+                            class="bg-primary-600 hover:bg-primary-700 text-white font-bold py-3 px-6 rounded-lg shadow-md transition duration-200 flex items-center">
+                            <span class="material-icons mr-2">check_circle</span>
+                            Verificar Todos os Exercícios
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Results Section (hidden by default) -->
+        <section id="results-section" class="hidden bg-white rounded-xl shadow-md overflow-hidden mb-12">
+            <div class="p-6 border-b border-gray-200 bg-gradient-to-r from-primary-500 to-primary-700">
+                <h2 class="text-2xl font-bold text-white flex items-center">
+                    <span class="material-icons mr-2">emoji_events</span>
+                    Seu Desempenho
+                </h2>
+            </div>
+
+            <div class="p-6">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                    <div class="bg-green-50 p-4 rounded-lg border border-green-200 text-center">
+                        <div class="text-4xl font-bold text-success-700 mb-2" id="correct-count">0</div>
+                        <div class="text-green-800 font-medium">Respostas Corretas</div>
+                    </div>
+
+                    <div class="bg-yellow-50 p-4 rounded-lg border border-yellow-200 text-center">
+                        <div class="text-4xl font-bold text-warning-700 mb-2" id="incorrect-count">0</div>
+                        <div class="text-yellow-800 font-medium">Respostas Incorretas</div>
+                    </div>
+
+                    <div class="bg-blue-50 p-4 rounded-lg border border-blue-200 text-center">
+                        <div class="text-4xl font-bold text-primary-700 mb-2" id="percentage">0%</div>
+                        <div class="text-blue-800 font-medium">Taxa de Acerto</div>
+                    </div>
+                </div>
+
+                <div class="mb-6">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-4">Feedback:</h3>
+                    <div id="feedback-message" class="p-4 rounded-lg bg-gray-100 text-gray-800">
+                        Comece a resolver os exercícios para receber feedback!
+                    </div>
+                </div>
+
+                <div class="flex justify-center space-x-4">
+                    <button id="retry-incorrect-btn"
+                        class="bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-2 px-4 rounded-lg shadow transition duration-200 flex items-center">
+                        <span class="material-icons mr-2">replay</span>
+                        Tentar Novamente os Erros
+                    </button>
+                    <button id="reset-all-btn"
+                        class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg shadow transition duration-200 flex items-center">
+                        <span class="material-icons mr-2">refresh</span>
+                        Reiniciar Todos
+                    </button>
+                </div>
+            </div>
+        </section>
+    </div>
+    
+    <script src="js/focus-mode.js"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Variáveis para armazenar dados do aluno
+            let studentName = '';
+            let studentClass = '';
+
+            // Configurações do Telegram
+            const botToken = '8107150735:AAFOXqIyKoVCyrH2U2kwTlEAPheH23qPIS4'; // Substitua pelo seu token
+            const chatId = '5499096865'; // Substitua pelo seu chat ID
+
+            // Elementos do modal
+            const modal = document.getElementById('student-modal');
+            const studentForm = document.getElementById('student-form');
+            const mainContent = document.getElementById('main-content');
+
+            // Mostrar modal ao carregar a página
+            modal.classList.remove('modal-enter');
+
+            // Quando o formulário for enviado
+            studentForm.addEventListener('submit', function (e) {
+                e.preventDefault();
+
+                studentName = document.getElementById('student-name').value.trim();
+                studentClass = document.getElementById('student-class').value.trim();
+
+                if (studentName && studentClass) {
+                    // Esconder modal e mostrar conteúdo principal
+                    modal.classList.add('modal-enter');
+                    mainContent.classList.remove('hidden');
+
+                    // Iniciar exercícios
+                    initExercises();
+                }
+            });
+
+            // Função para enviar resultados ao Telegram
+            async function sendResultsToTelegram(results) {
+                const message = `📊 *Resultado: Equações 1º Grau*\n\n` +
+                    `👨‍🎓 * ${studentName} * - ${studentClass}\n\n` +
+                    `✅ *Acertos:* ${results.correct}/${results.total}\n` +
+                    `📈 *Taxa de acerto:* ${results.percentage}%\n` +
+                    `⏳ *Tempo gasto:* ${results.time.minutes}min ${results.time.seconds}s`;
+
+                try {
+                    const response = await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            chat_id: chatId,
+                            text: message,
+                            parse_mode: 'Markdown'
+                        })
+                    });
+
+                    const data = await response.json();
+                    if (!data.ok) {
+                        console.error('Erro ao enviar para o Telegram:', data);
+                    }
+                } catch (error) {
+                    console.error('Erro de rede:', error);
+                }
+            }
+
+            function initExercises() {
+                const container = document.getElementById('exercises-container');
+                const progressContainer = document.getElementById('progress-container');
+                const resultsSection = document.getElementById('results-section');
+                let correctAnswers = 0;
+                const totalExercises = 10;
+                let exercisesData = [];
+                let startTime = new Date();
+
+                // Função para calcular tempo gasto
+                function calculateTimeSpent() {
+                    const endTime = new Date();
+                    const totalSeconds = Math.floor((endTime - startTime) / 1000);
+                    return {
+                        minutes: Math.floor(totalSeconds / 60),
+                        seconds: totalSeconds % 60
+                    };
+                }
+
+                // Gerar equações aleatórias
+                function generateEquation() {
+                    const types = [
+                        () => { // ax + b = c
+                            const a = getNonZeroRandom(-5, 5);
+                            const b = getRandom(-5, 5);
+                            const c = a * getRandom(-3, 3) + b;
+                            return {
+                                equation: `${a}x ${b >= 0 ? '+' : '-'} ${Math.abs(b)} = ${c}`,
+                                solution: (c - b) / a
+                            };
+                        },
+                        () => { // a(x + b) = c
+                            const a = getNonZeroRandom(-5, 5);
+                            const b = getRandom(-5, 5);
+                            const c = a * (b + getRandom(-3, 3));
+                            return {
+                                equation: `${a}(x ${b >= 0 ? '+' : '-'} ${Math.abs(b)}) = ${c}`,
+                                solution: (c / a) - b
+                            };
+                        }
+                    ];
+
+                    const type = Math.floor(Math.random() * types.length);
+                    return types[type]();
+                }
+
+                function getRandom(min, max) {
+                    return Math.floor(Math.random() * (max - min + 1)) + min;
+                }
+
+                function getNonZeroRandom(min, max) {
+                    let num;
+                    do {
+                        num = getRandom(min, max);
+                    } while (num === 0);
+                    return num;
+                }
+
+                // Renderizar equações
+                function renderExercises() {
+                    container.innerHTML = '';
+                    correctAnswers = 0;
+                    exercisesData = [];
+
+                    for (let i = 1; i <= totalExercises; i++) {
+                        const { equation, solution } = generateEquation();
+                        exercisesData.push({ equation, solution });
+
+                        const exerciseEl = document.createElement('div');
+                        exerciseEl.className = 'exercise bg-gray-50 p-4 rounded-lg border border-gray-200';
+                        exerciseEl.dataset.index = i - 1;
+                        exerciseEl.dataset.solved = 'false';
+
+                        exerciseEl.innerHTML = `
+                            <div class="text-lg font-mono mb-4 text-center">
+                                $${equation}$
+                            </div>
+                            <div class="flex flex-col sm:flex-row items-center justify-center space-y-2 sm:space-y-0 sm:space-x-4">
+                                <label for="answer-${i}" class="text-gray-700">x =</label>
+                                <input type="text" id="answer-${i}" class="answer-input border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Sua resposta">
+                                <button class="check-btn bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded transition duration-200">Verificar</button>
+                            </div>
+                            <div class="feedback mt-3 text-sm hidden"></div>
+                        `;
+
+                        container.appendChild(exerciseEl);
+                    }
+
+                    if (window.MathJax) {
+                        MathJax.typesetPromise();
+                    }
+
+                    updateProgress();
+                }
+
+                // Verificar respostas
+                function checkAnswer(exerciseEl, userAnswer) {
+                    const input = exerciseEl.querySelector('.answer-input');
+                    const feedback = exerciseEl.querySelector('.feedback');
+                    const index = parseInt(exerciseEl.dataset.index);
+                    const correctAnswer = exercisesData[index].solution;
+
+                    // Converter para número
+                    let numericAnswer;
+                    if (userAnswer.includes('/')) {
+                        const [num, den] = userAnswer.split('/').map(Number);
+                        numericAnswer = den !== 0 ? num / den : NaN;
+                    } else {
+                        numericAnswer = parseFloat(userAnswer.replace(',', '.'));
+                    }
+
+                    if (isNaN(numericAnswer)) {
+                        feedback.textContent = 'Por favor, insira um número válido (ex: 2, 0.5 ou 1/2)';
+                        feedback.className = 'feedback mt-3 text-sm text-red-500';
+                        feedback.classList.remove('hidden');
+                        return false;
+                    }
+
+                    // Verificar resposta
+                    const isCorrect = Math.abs(numericAnswer - correctAnswer) < 0.001;
+
+                    if (isCorrect) {
+                        feedback.textContent = '✅ Correto!';
+                        feedback.className = 'feedback mt-3 text-sm text-green-500';
+                        if (exerciseEl.dataset.solved === 'false') {
+                            correctAnswers++;
+                            exerciseEl.dataset.solved = 'true';
+                        }
+                    } else {
+                        feedback.textContent = `❌ Incorreto. A resposta correta é ${formatSolution(correctAnswer)}.`;
+                        feedback.className = 'feedback mt-3 text-sm text-red-500';
+                        if (exerciseEl.dataset.solved === 'true') {
+                            correctAnswers--;
+                            exerciseEl.dataset.solved = 'false';
+                        }
+                    }
+
+                    // Desabilitar o campo de input após verificação
+                    input.disabled = true;
+                    feedback.classList.remove('hidden');
+                    updateProgress();
+
+                    return isCorrect;
+                }
+
+                function formatSolution(num) {
+                    if (Number.isInteger(num)) return num.toString();
+
+                    // Verificar frações simples
+                    const fractions = [
+                        { val: 0.5, str: '1/2' }, { val: 0.25, str: '1/4' }, { val: 0.75, str: '3/4' },
+                        { val: 0.333, str: '1/3' }, { val: 0.666, str: '2/3' }, { val: 0.2, str: '1/5' },
+                        { val: 0.4, str: '2/5' }, { val: 0.6, str: '3/5' }, { val: 0.8, str: '4/5' }
+                    ];
+
+                    for (const frac of fractions) {
+                        if (Math.abs(num - frac.val) < 0.01) {
+                            return frac.str;
+                        }
+                    }
+
+                    return num.toFixed(2);
+                }
+
+                // Atualizar progresso
+                function updateProgress() {
+                    const percentage = Math.round((correctAnswers / totalExercises) * 100);
+                    const progressRing = document.getElementById('progress-ring');
+                    const progressPercent = document.getElementById('progress-percent');
+                    const progressScore = document.getElementById('progress-score');
+                    const progressMessage = document.getElementById('progress-message');
+
+                    progressRing.style.strokeDashoffset = 100 - percentage;
+                    progressPercent.textContent = `${percentage}%`;
+                    progressScore.textContent = `${correctAnswers}/${totalExercises}`;
+
+                    if (percentage === 100) {
+                        progressMessage.textContent = 'Parabéns! Você completou todos os exercícios!';
+                        showResults();
+                    } else if (percentage >= 70) {
+                        progressMessage.textContent = 'Ótimo trabalho! Continue assim!';
+                    } else if (percentage >= 30) {
+                        progressMessage.textContent = 'Você está no caminho certo!';
+                    } else {
+                        progressMessage.textContent = 'Continue praticando!';
+                    }
+                }
+
+                // Mostrar resultados
+                function showResults() {
+                    const percentage = Math.round((correctAnswers / totalExercises) * 100);
+                    document.getElementById('correct-count').textContent = correctAnswers;
+                    document.getElementById('incorrect-count').textContent = totalExercises - correctAnswers;
+                    document.getElementById('percentage').textContent = `${percentage}%`;
+
+                    const feedbackMessage = document.getElementById('feedback-message');
+                    if (percentage === 100) {
+                        feedbackMessage.textContent = 'Excelente! Você acertou todas as equações!';
+                        feedbackMessage.className = 'p-4 rounded-lg bg-green-100 text-green-800';
+                    } else if (percentage >= 70) {
+                        feedbackMessage.textContent = 'Bom trabalho! Você está indo muito bem com equações do primeiro grau.';
+                        feedbackMessage.className = 'p-4 rounded-lg bg-blue-100 text-blue-800';
+                    } else {
+                        feedbackMessage.textContent = 'Continue praticando! Reveja os exemplos e tente novamente.';
+                        feedbackMessage.className = 'p-4 rounded-lg bg-yellow-100 text-yellow-800';
+                    }
+
+                    resultsSection.classList.remove('hidden');
+
+                    // Enviar resultados automaticamente para o Telegram
+                    const timeSpent = calculateTimeSpent();
+                    sendResultsToTelegram({
+                        name: studentName,
+                        class: studentClass,
+                        correct: correctAnswers,
+                        total: totalExercises,
+                        percentage: percentage,
+                        time: timeSpent
+                    });
+                }
+
+                // Event Listeners
+                container.addEventListener('click', function (e) {
+                    if (e.target.classList.contains('check-btn')) {
+                        const exerciseEl = e.target.closest('.exercise');
+                        const input = exerciseEl.querySelector('.answer-input');
+                        checkAnswer(exerciseEl, input.value.trim());
+                    }
+                });
+
+                document.getElementById('check-all-btn').addEventListener('click', function () {
+                    const exercises = document.querySelectorAll('.exercise');
+                    let allChecked = true;
+
+                    exercises.forEach(ex => {
+                        const input = ex.querySelector('.answer-input');
+                        if (input.value.trim() === '') {
+                            allChecked = false;
+                            const feedback = ex.querySelector('.feedback');
+                            feedback.textContent = 'Por favor, insira uma resposta antes de verificar.';
+                            feedback.className = 'feedback mt-3 text-sm text-red-500';
+                            feedback.classList.remove('hidden');
+                        } else if (!input.disabled) {
+                            checkAnswer(ex, input.value.trim());
+                        }
+                    });
+
+                    if (allChecked) {
+                        showResults();
+                    }
+                });
+
+                document.getElementById('retry-incorrect-btn').addEventListener('click', function () {
+                    const incorrectExercises = Array.from(document.querySelectorAll('.exercise[data-solved="false"]'));
+
+                    if (incorrectExercises.length === 0) {
+                        alert('Parabéns! Você não tem exercícios incorretos para tentar novamente.');
+                        return;
+                    }
+
+                    // Gerar novos exercícios apenas para as posições incorretas
+                    incorrectExercises.forEach(ex => {
+                        const index = parseInt(ex.dataset.index);
+                        const { equation, solution } = generateEquation();
+                        exercisesData[index] = { equation, solution };
+
+                        ex.innerHTML = `
+                            <div class="text-lg font-mono mb-4 text-center">
+                                $${equation}$
+                            </div>
+                            <div class="flex flex-col sm:flex-row items-center justify-center space-y-2 sm:space-y-0 sm:space-x-4">
+                                <label for="answer-${index + 1}" class="text-gray-700">x =</label>
+                                <input type="text" id="answer-${index + 1}" class="answer-input border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Sua resposta">
+                                <button class="check-btn bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded transition duration-200">Verificar</button>
+                            </div>
+                            <div class="feedback mt-3 text-sm hidden"></div>
+                        `;
+                    });
+
+                    if (window.MathJax) {
+                        MathJax.typesetPromise();
+                    }
+
+                    resultsSection.classList.add('hidden');
+                });
+
+                document.getElementById('reset-all-btn').addEventListener('click', function () {
+                    startTime = new Date(); // Reinicia o timer
+                    renderExercises();
+                    resultsSection.classList.add('hidden');
+                });
+
+                // Inicializar exercícios
+                renderExercises();
+                progressContainer.classList.remove('hidden');
+            }
+        });
+
+    </script>
+</body>
+
+</html>
