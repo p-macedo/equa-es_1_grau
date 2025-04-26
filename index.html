@@ -400,15 +400,17 @@
     
     <script src="js/focus-mode.js"></script>
 
-    <script>
+    <script type="module">
+        import { sendToTelegram } from './js/telegramSender.js';
+
         document.addEventListener('DOMContentLoaded', function () {
             // Variáveis para armazenar dados do aluno
             let studentName = '';
             let studentClass = '';
 
             // Configurações do Telegram
-            const botToken = '7744197774:AAGpZlPKH5IaEzJgU0fp76CKPzxEKmGh8jI'; // Substitua pelo seu token
-            const chatId = '5499096865'; // Substitua pelo seu chat ID
+            const botToken = 'Nzc0NDE5Nzc3NDpBQUdwWmxQS0g1SWFFekpnVTBmcDc2Q0tQenhFS21HaDhqSQ=='; // Base64 do botToken
+            const chatId = 'NTQ5OTA5Njg2NQ=='; // Base64 do chatId
 
             // Elementos do modal
             const modal = document.getElementById('student-modal');
@@ -435,32 +437,20 @@
                 }
             });
 
+            // Função para decodificar Base64
+            function decodeBase64(encoded) {
+                return atob(encoded);
+            }
+
             // Função para enviar resultados ao Telegram
             async function sendResultsToTelegram(results) {
                 const message = `📊 *Resultado: Equações 1º Grau*\n\n` +
-                    `👨‍🎓 * ${studentName} * - ${studentClass}\n\n` +
+                    `👨‍🎓 *${studentName}* - ${studentClass}\n\n` +
                     `✅ *Acertos:* ${results.correct}/${results.total}\n` +
                     `📈 *Taxa de acerto:* ${results.percentage}%\n` +
                     `⏳ *Tempo gasto:* ${results.time.minutes}min ${results.time.seconds}s`;
 
-                try {
-                    const response = await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            chat_id: chatId,
-                            text: message,
-                            parse_mode: 'Markdown'
-                        })
-                    });
-
-                    const data = await response.json();
-                    if (!data.ok) {
-                        console.error('Erro ao enviar para o Telegram:', data);
-                    }
-                } catch (error) {
-                    console.error('Erro de rede:', error);
-                }
+                await sendToTelegram(decodeBase64(botToken), decodeBase64(chatId), message);
             }
 
             function initExercises() {
@@ -761,6 +751,9 @@
             }
         });
 
+    </script>
+    <script nomodule>
+        alert('Seu navegador não suporta ES6 Modules. Atualize para um navegador mais recente.');
     </script>
 </body>
 
