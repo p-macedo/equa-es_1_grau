@@ -123,7 +123,7 @@
             transform: translateY(0);
         }
     </style>
-  
+
 </head>
 
 <body class="bg-gray-50 font-sans antialiased">
@@ -397,8 +397,22 @@
             </div>
         </section>
     </div>
-    
+
     <script src="js/focus-mode.js"></script>
+
+    <script type="module">
+        import { iniciarMonitoramento } from './js/atividadeExpirada.js'; // Ensure the path is correct
+
+        // Inicia o monitoramento da atividade
+        iniciarMonitoramento();
+
+        // Seu código normal da página aqui
+        document.addEventListener('DOMContentLoaded', function () {
+            console.log('Página carregada');
+
+            // Restante do seu código de inicialização...
+        });
+    </script>
 
     <script type="module">
         import { sendToTelegram } from './js/telegramSender.js';
@@ -753,7 +767,20 @@
 
     </script>
     <script nomodule>
-        alert('Seu navegador não suporta ES6 Modules. Atualize para um navegador mais recente.');
+        alert('Seu navegador não suporta módulos JavaScript. Por favor, atualize para uma versão mais recente.');
+        // Fallback para navegadores sem suporte a modules
+        document.body.innerHTML = `
+        <style>
+            body {
+                padding: 20px;
+                font-family: Arial;
+                text-align: center;
+                color: #d32f2f;
+            }
+        </style>
+        <h1>Navegador não suportado</h1>
+        <p>Por favor, atualize seu navegador para acessar esta atividade.</p>
+    `;
     </script>
 </body>
 
