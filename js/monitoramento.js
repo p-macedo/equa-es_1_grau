@@ -1,5 +1,5 @@
 // Data limite para aceitar exercícios (formato: 'YYYY-MM-DD HH:MM:SS')
-const DEADLINE = '2025-05-03 23:59:59'; // Altere para a data/hora desejada
+const DEADLINE = '2025-05-02 23:59:59'; // Altere para a data/hora desejada
 
 function parseDateTime(str) {
     // Espera formato 'YYYY-MM-DD HH:MM:SS'
